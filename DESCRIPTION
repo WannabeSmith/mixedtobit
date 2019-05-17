@@ -1,0 +1,14 @@
+Package: mixedtobit
+Type: Package
+Title: Estimate Mixed Tobit Regression Models 
+Version: 0.1.0
+Authors@R: c(person("Ian", "Waudby-Smith", email = "ianws@cmu.edu", role = c("aut", "cre")), person("Eleanor", "Pullenayegum", email = "eleanor.pullenayegum@sickkids.ca", role = "aut"))
+Maintainer: Ian Waudby-Smith <ianws@cmu.edu>
+Description: Use multiple outputation (a.k.a. within-cluster resampling) to estimate tobit regression model parameters with mixed effects.
+Imports:
+    multiout,
+    crch
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
