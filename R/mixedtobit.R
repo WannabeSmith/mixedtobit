@@ -40,7 +40,7 @@ mixedtobit <- function(formula, data, M, left = -1, id)
     return(beta)
   }
 
-  beta.ests <- multiout(fn = fn, M = M, data = data, id = id)
+  mo <- multiout(fn = fn, M = M, data = data, id = id)
 
-  return(beta.ests)
+  return(mo)
 }
