@@ -40,7 +40,16 @@ mixedtobit <- function(formula, data, M, left = -1, id)
     return(beta)
   }
 
-  mo <- multiout(fn = fn, M = M, data = data, id = id)
+  mo <- multiout(fn = fn, M = M, data = data, id = id, leave.as.list = TRUE)
+  betas <- Reduce(function(a,b){rbind(a, b$beta)}, x = mo[-1], init = mo[[1]]$beta)
+  Sigma.sum <- Reduce(function(a, b){a + b$Sigma}, x = mo[-1], init = mo[[1]]$Sigma)
 
-  return(mo)
+
+  beta.hat <- colMeans(betas)
+
+  beta.vars <- apply(X = betas, MARGIN = 2, FUN = var)
+  Sigma.hat <- Sigma.sum / M - diag(beta.vars) # See (Follman, 2003)
+
+  return(list(beta = beta.hat,
+              Sigma = Sigma.hat))
 }
