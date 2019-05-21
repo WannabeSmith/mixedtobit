@@ -16,31 +16,30 @@ mixedtobit <- function(formula, data, M, left = -1, id)
 {
   # Note: right now, only supports
   # (a) full mixed effects model (so, fixed AND random effect for each parameter provided)
-  # (b) same variance for each random effect.
-  # (c) left-censoring only
+  # (b) left-censoring only
   # TODO: Remove these limitations, especially if we are to submit this to CRAN.
   #       These aren't terribly difficult, just time-consuming to implement.
 
   X <- model.matrix(formula, data = data)
-  data$xTx <- rowSums(X)
-
   y.name <- all.vars(formula)[1]
 
   fn <- function(fn.data)
   {
     fn.X <- model.matrix(formula, data = fn.data)
 
-    m <- crch(fn.data[, y.name] ~ -1 + fn.X | xTx,
-              link.scale = "quadratic", left = -1,
+    m <- crch(fn.data[, y.name] ~ -1 + fn.X | fn.X[,-1]^2,
+              link.scale = "quadratic", left = left,
               data = fn.data)
 
     beta <- m$coefficients$location
     names(beta) <- colnames(X)
 
-    return(beta)
+    Sigma <- diag(m$coefficients$scale)
+
+    return(list(beta = beta, Sigma = Sigma))
   }
 
-  mo <- multiout(fn = fn, M = M, data = data, id = id)
+  mo <- multiout(fn = fn, M = M, data = data, id = id, leave.as.list = TRUE)
 
   return(mo)
 }
