@@ -43,14 +43,7 @@ mixedtobit <- function(formula, data, M, left = -1, id, same.variance = TRUE)
     beta <- m$coefficients$location
     names(beta) <- colnames(X)
 
-    if(same.variance)
-    {
-      vars <- m$coefficients$scale
-      Sigma <- diag(c(vars[1], rep(vars[2], ncol(fn.X) - 1)))
-    } else
-    {
-      Sigma <- diag(m$coefficients$scale)
-    }
+    Sigma <- m$vcov[1:ncol(fn.X), 1:ncol(fn.X)]
 
     return(list(beta = beta, Sigma = Sigma))
   }
@@ -61,20 +54,10 @@ mixedtobit <- function(formula, data, M, left = -1, id, same.variance = TRUE)
 
   Sigma.sum <- Reduce(function(a, b){a + b$Sigma}, x = mo[-1], init = mo[[1]]$Sigma)
 
-  if(same.variance)
-  {
-    intercept.var <- var(betas[,1])
-    beta.var.noint <- var(as.vector(betas[,-1]))
-    beta.vars <- c(intercept.var, rep(beta.var.noint, ncol(betas)-1))
-  } else
-  {
-    beta.vars <- apply(X = betas, MARGIN = 2, FUN = var)
-  }
+  beta.var <- var(betas)
 
-  Sigma.hat <- Sigma.sum / M
-  Sigma.of.est <- Sigma.hat - diag(beta.vars) # See (Follman, 2003)
+  Sigma.of.est <- Sigma.sum / M # - beta.var # See (Follman, 2003)
 
   return(list(beta = beta.hat,
-              Sigma = Sigma.hat,
-              Sigma.of.est = Sigma.of.est))
+              Sigma = Sigma.of.est))
 }
