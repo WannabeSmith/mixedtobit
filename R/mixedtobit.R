@@ -67,5 +67,6 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
 
   return(list(beta = beta.hat,
               Sigma = Sigma.of.est,
-              ch.var = ch.var.hat))
+              ch.var = ch.var.hat,
+              mean.Sigmas = Sigma.sum / M))
 }
