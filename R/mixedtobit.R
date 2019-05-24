@@ -10,9 +10,10 @@
 #' @param M the (positive integer) number of outputations (resamples) to perform
 #' @param left the location of left censoring
 #' @param id a string of the column name in "data" specifying the cluster ID
+#' @param ch.terms a vector of column names that should be used as conditional heteroscedasticity covariates
 #' @return A vector containing the outputated regression coefficient estimates
 #' @export
-mixedtobit <- function(formula, data, M, left = -1, id, same.variance = TRUE)
+mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
 {
   # Note: right now, only supports
   # (a) full mixed effects model (so, fixed AND random effect for each parameter provided)
@@ -27,10 +28,9 @@ mixedtobit <- function(formula, data, M, left = -1, id, same.variance = TRUE)
   {
     fn.X <- model.matrix(formula, data = fn.data)
 
-    if(same.variance)
+    if(!is.null(ch.terms))
     {
-      fn.data$xTx <- rowSums(fn.X^2)
-      fn.formula <- fn.data[, y.name] ~ -1 + fn.X | xTx
+      fn.formula <- fn.data[, y.name] ~ -1 + fn.X | as.matrix(fn.data[, ch.terms])
     } else
     {
       fn.formula <- fn.data[, y.name] ~ -1 + fn.X | fn.X[,-1]^2
@@ -45,7 +45,11 @@ mixedtobit <- function(formula, data, M, left = -1, id, same.variance = TRUE)
 
     Sigma <- m$vcov[1:ncol(fn.X), 1:ncol(fn.X)]
 
-    return(list(beta = beta, Sigma = Sigma))
+    ch.var <- m$coefficients$scale
+    names(ch.var)[2:length(ch.var)] <- ch.terms
+
+    return(list(beta = beta, Sigma = Sigma,
+                ch.var = ch.var))
   }
 
   mo <- multiout(fn = fn, M = M, data = data, id = id, leave.as.list = TRUE)
@@ -56,8 +60,13 @@ mixedtobit <- function(formula, data, M, left = -1, id, same.variance = TRUE)
 
   beta.var <- var(betas)
 
-  Sigma.of.est <- Sigma.sum / M # - beta.var # See (Follman, 2003)
+  Sigma.of.est <- Sigma.sum / M - beta.var # See (Follman, 2003)
+
+  ch.var.sum <- Reduce(function(a, b){a + b$ch.var}, x = mo[-1], init = mo[[1]]$ch.var)
+  ch.var.hat <- ch.var.sum / M
 
   return(list(beta = beta.hat,
-              Sigma = Sigma.of.est))
+              Sigma = Sigma.of.est,
+              ch.var = ch.var.hat,
+              mean.Sigmas = Sigma.sum / M))
 }
