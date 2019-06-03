@@ -33,7 +33,7 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
       fn.formula <- fn.data[, y.name] ~ -1 + fn.X | as.matrix(fn.data[, ch.terms])
     } else
     {
-      fn.formula <- fn.data[, y.name] ~ -1 + fn.X | fn.X[,-1]^2
+      fn.formula <- fn.data[, y.name] ~ -1 + fn.X | 1
     }
 
     m <- crch(fn.formula,
@@ -46,7 +46,7 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
     Sigma <- m$vcov[1:ncol(fn.X), 1:ncol(fn.X)]
 
     ch.var <- m$coefficients$scale
-    names(ch.var)[2:length(ch.var)] <- ch.terms
+    names(ch.var)[-1] <- ch.terms
 
     return(list(beta = beta, Sigma = Sigma,
                 ch.var = ch.var))
@@ -74,5 +74,6 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
   return(list(beta = beta.hat,
               Sigma = Sigma.of.est,
               ch.var = ch.var.hat,
-              mean.Sigmas = Sigma.sum / M))
+              mean.Sigmas = Sigma.sum / M,
+              beta.var = beta.var))
 }
