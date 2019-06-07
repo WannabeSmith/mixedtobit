@@ -58,6 +58,7 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
   while(class(mo) == "try-error" && tries < 10)
   {
     mo <- try(multiout(fn = fn, M = M, data = data, id = id, leave.as.list = TRUE))
+    tries <- tries + 1
   }
 
   if(tries >= 10)
