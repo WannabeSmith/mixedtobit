@@ -54,9 +54,15 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
 
 
   mo <- try(multiout(fn = fn, M = M, data = data, id = id, leave.as.list = TRUE))
-  while(class(mo) == "try-error")
+  tries <- 1
+  while(class(mo) == "try-error" && tries < 10)
   {
     mo <- try(multiout(fn = fn, M = M, data = data, id = id, leave.as.list = TRUE))
+  }
+
+  if(tries >= 10)
+  {
+    stop("Too many failed attempts")
   }
 
   betas <- Reduce(function(a,b){rbind(a, b$beta)}, x = mo[-1], init = mo[[1]]$beta)
