@@ -5,6 +5,7 @@
 #' @importFrom multiout multiout
 #' @importFrom crch crch
 #' @importFrom stats model.matrix
+#' @importFrom stats var
 #' @param formula a regression formula describing the relationship between the response and the predictors
 #' @param data a data.frame containing the response and predictors of interest, as well as cluster IDs
 #' @param M the (positive integer) number of outputations (resamples) to perform
