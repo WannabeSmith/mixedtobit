@@ -12,9 +12,10 @@
 #' @param left the location of left censoring
 #' @param id a string of the column name in "data" specifying the cluster ID
 #' @param ch.terms a vector of column names that should be used as conditional heteroscedasticity covariates
+#' @param beta.only a logical variable indicating whether or not to include just beta (this is useful for simulations with memory requirements)
 #' @return A vector containing the outputated regression coefficient estimates
 #' @export
-mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
+mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL, beta.only = FALSE)
 {
   # Note: right now, only supports
   # (a) full mixed effects model (so, fixed AND random effect for each parameter provided)
@@ -44,13 +45,19 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
     beta <- m$coefficients$location
     names(beta) <- colnames(X)
 
-    Sigma <- m$vcov[1:ncol(fn.X), 1:ncol(fn.X)]
+    if(beta.only)
+    {
+      return(beta)
+    } else
+    {
+      Sigma <- m$vcov[1:ncol(fn.X), 1:ncol(fn.X)]
 
-    ch.var <- m$coefficients$scale
-    names(ch.var)[-1] <- ch.terms
+      ch.var <- m$coefficients$scale
+      names(ch.var)[-1] <- ch.terms
 
-    return(list(beta = beta, Sigma = Sigma,
-                ch.var = ch.var))
+      return(list(beta = beta, Sigma = Sigma,
+                  ch.var = ch.var))
+    }
   }
 
 
@@ -67,21 +74,30 @@ mixedtobit <- function(formula, data, M, left = -1, id, ch.terms = NULL)
     stop("Too many failed attempts")
   }
 
-  betas <- Reduce(function(a,b){rbind(a, b$beta)}, x = mo[-1], init = mo[[1]]$beta)
-  beta.hat <- colMeans(betas)
+  if(beta.only)
+  {
+    betas <- do.call(rbind, mo)
+    beta.hat <- colMeans(betas)
 
-  Sigma.sum <- Reduce(function(a, b){a + b$Sigma}, x = mo[-1], init = mo[[1]]$Sigma)
+    return(list(beta = beta.hat))
+  } else
+  {
+    betas <- Reduce(function(a,b){rbind(a, b$beta)}, x = mo[-1], init = mo[[1]]$beta)
+    beta.hat <- colMeans(betas)
 
-  beta.var <- var(betas)
+    Sigma.sum <- Reduce(function(a, b){a + b$Sigma}, x = mo[-1], init = mo[[1]]$Sigma)
 
-  Sigma.of.est <- Sigma.sum / M - beta.var # See (Follman, 2003)
+    beta.var <- var(betas)
 
-  ch.var.sum <- Reduce(function(a, b){a + b$ch.var}, x = mo[-1], init = mo[[1]]$ch.var)
-  ch.var.hat <- ch.var.sum / M
+    Sigma.of.est <- Sigma.sum / M - beta.var # See (Follman, 2003)
 
-  return(list(beta = beta.hat,
-              Sigma = Sigma.of.est,
-              ch.var = ch.var.hat,
-              mean.Sigmas = Sigma.sum / M,
-              beta.var = beta.var))
+    ch.var.sum <- Reduce(function(a, b){a + b$ch.var}, x = mo[-1], init = mo[[1]]$ch.var)
+    ch.var.hat <- ch.var.sum / M
+
+    return(list(beta = beta.hat,
+                Sigma = Sigma.of.est,
+                ch.var = ch.var.hat,
+                mean.Sigmas = Sigma.sum / M,
+                beta.var = beta.var))
+  }
 }

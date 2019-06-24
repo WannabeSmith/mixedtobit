@@ -4,7 +4,8 @@
 \alias{mixedtobit}
 \title{Estimate tobit regression model parameters with mixed effects}
 \usage{
-mixedtobit(formula, data, M, left = -1, id, ch.terms = NULL)
+mixedtobit(formula, data, M, left = -1, id, ch.terms = NULL,
+  beta.only = FALSE)
 }
 \arguments{
 \item{formula}{a regression formula describing the relationship between the response and the predictors}
@@ -18,6 +19,8 @@ mixedtobit(formula, data, M, left = -1, id, ch.terms = NULL)
 \item{id}{a string of the column name in "data" specifying the cluster ID}
 
 \item{ch.terms}{a vector of column names that should be used as conditional heteroscedasticity covariates}
+
+\item{beta.only}{a logical variable indicating whether or not to include just beta (this is useful for simulations with memory requirements)}
 }
 \value{
 A vector containing the outputated regression coefficient estimates
